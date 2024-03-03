@@ -1,14 +1,23 @@
-import mysql from 'mysql2/promise';
-import { dbConfig } from './config.js';
+import mysql from "mysql2/promise";
+import { dbConfig } from "./config.js";
 
-const connectDB = async () => {
-    try {
-        const connectionInstance = await mysql.createConnection(dbConfig);
-        console.log(`Database connected! DB host: ${connectionInstance}`);
-    } catch (error) {
-        console.log(`Database connect error: ${error}`);
-        process.exit(1);
-    }
-};
+const connectionPool = mysql.createPool({
+  ...dbConfig,
+  connectionLimit: 10,
+});
 
-export default connectDB;
+function checkConnection() {
+  return new Promise((resolve, reject) => {
+    connectionPool
+      .getConnection()
+      .then((connection) => {
+        connection.release();
+        resolve();
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+}
+
+export { connectionPool, checkConnection };
