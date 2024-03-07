@@ -10,12 +10,15 @@ app.use(express.urlencoded({extended:true}));
 
 // Import Routes
 import userRoutes from "./routes/user.routes.js";
+import boardRoutes from "./routes/board.routes.js";
+
 
 app.get("/", (_, res) => {
   res.send("Server is running...!");
 });
 
 app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/tm",boardRoutes );
 
 export { app };
 
