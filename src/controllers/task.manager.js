@@ -24,9 +24,9 @@ const taskController = asyncHandler(async (req, res) => {
     if (boardId) {
       const connection = await connectionPool.getConnection();
       const sql = `
-                  select tb.user_id,tt.board_id
-                  from tbl_boards tb join tbl_tasks tt on tb.table_id=tt.board_id 
-                  WHERE tb.table_id=? and tb.user_id=?;
+      select tt.board_id,tt.title,tt.desc_task,tts.status
+      from tbl_boards tb join tbl_tasks tt on tb.table_id=tt.board_id join tbl_task_status tts on tt.table_id=tts.task_id
+      WHERE tb.table_id=? and tb.user_id=? and tts.is_deleted=0;
                 `;
       const values = [boardId, userId];
       const [results] = await connection.query(sql, values);
@@ -36,6 +36,7 @@ const taskController = asyncHandler(async (req, res) => {
       return res.status(500).json(new ApiError(500, "Board id is required"));
     }
   } catch (error) {
+    console.log("erorrrr", error);
     return res.status(500).json(new ApiError(500, error.responce));
   }
 });
