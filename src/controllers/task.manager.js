@@ -3,6 +3,21 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
+const createBoardController = asyncHandler(async (req, res) => {
+  const userId = req.headers.userid;
+  const { boardName } = req.body;
+  try {
+    const connection = await connectionPool.getConnection();
+    let sql = `INSERT INTO tbl_boards(name,user_id) VALUES (?,?)`;
+    const values = [boardName, userId];
+    const queryResult =await connection.query(sql, values);
+    connection.release();
+    res.status(200).json(new ApiResponse(200, {boardId: queryResult[0].insertId},"inserted successfully"));
+  } catch (error) {
+    return res.status(500).json(new ApiError(500, error.responce));
+  }
+});
+
 const getBoardsController = asyncHandler(async (req, res) => {
   const userId = req.headers.userid;
   try {
@@ -36,9 +51,10 @@ const taskController = asyncHandler(async (req, res) => {
       return res.status(500).json(new ApiError(500, "Board id is required"));
     }
   } catch (error) {
-    console.log("erorrrr", error);
+    // console.log("erorrrr", error);
     return res.status(500).json(new ApiError(500, error.responce));
   }
 });
 
-export { getBoardsController, taskController };
+export { createBoardController, getBoardsController, taskController };
+
