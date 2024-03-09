@@ -49,7 +49,7 @@ const taskController = asyncHandler(async (req, res) => {
       const sql = `
       select tt.board_id,tt.title,tt.desc_task,tts.status
       from tbl_boards tb join tbl_tasks tt on tb.table_id=tt.board_id join tbl_task_status tts on tt.table_id=tts.task_id
-      WHERE tb.table_id=? and tb.user_id=? and tts.is_deleted=0;
+      WHERE tb.table_id=? and tb.user_id=? and tts.is_deleted=0 order by tt.table_id desc;
                 `;
       const values = [boardId, userId];
       const [results] = await connection.query(sql, values);
