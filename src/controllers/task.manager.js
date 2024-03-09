@@ -10,9 +10,17 @@ const createBoardController = asyncHandler(async (req, res) => {
     const connection = await connectionPool.getConnection();
     let sql = `INSERT INTO tbl_boards(name,user_id) VALUES (?,?)`;
     const values = [boardName, userId];
-    const queryResult =await connection.query(sql, values);
+    const queryResult = await connection.query(sql, values);
     connection.release();
-    res.status(200).json(new ApiResponse(200, {boardId: queryResult[0].insertId},"inserted successfully"));
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          { boardId: queryResult[0].insertId },
+          "inserted successfully"
+        )
+      );
   } catch (error) {
     return res.status(500).json(new ApiError(500, error.responce));
   }
@@ -51,10 +59,59 @@ const taskController = asyncHandler(async (req, res) => {
       return res.status(500).json(new ApiError(500, "Board id is required"));
     }
   } catch (error) {
-    // console.log("erorrrr", error);
     return res.status(500).json(new ApiError(500, error.responce));
   }
 });
 
-export { createBoardController, getBoardsController, taskController };
+const addTaskController = asyncHandler(async (req, res) => {
+  const { boardId, taskName, decription, taskStatus } = req.body;
+  let errorData = [];
+  if (!boardId) {
+    errorData.push("boardId required");
+  }
+  if (!taskName) {
+    errorData.push("taskName required");
+  }
+  if (!decription) {
+    errorData.push("decription required");
+  }
+  if (!taskStatus) {
+    errorData.push("taskStatus required");
+  }
 
+  try {
+    if (errorData.length == 0) {
+      const connection = await connectionPool.getConnection();
+      const insertForTasksql = `INSERT INTO tbl_tasks (board_id, title, desc_task) VALUES (?,?,?)`;
+      const valuesForTask = [boardId, taskName, decription];
+      const queryResult = await connection.query(
+        insertForTasksql,
+        valuesForTask
+      );
+      const taskId = queryResult[0].insertId;
+      const insertForStatussql = `INSERT INTO tbl_task_status(task_id,status,is_deleted) VALUES (?,?,?);`;
+      const valueForStatus = [taskId, taskStatus, 0];
+      await connection.query(insertForStatussql, valueForStatus);
+      connection.release();
+      return res.status(200).json(
+        new ApiResponse(200, {
+          board_id: boardId,
+          title: taskName,
+          desc_task: decription,
+          status: taskStatus,
+        })
+      );
+    } else {
+      return res.status(500).json(new ApiError(500, errorData));
+    }
+  } catch (error) {
+    return res.status(500).json(new ApiError(500, error.responce));
+  }
+});
+
+export {
+  addTaskController,
+  createBoardController,
+  getBoardsController,
+  taskController,
+};
