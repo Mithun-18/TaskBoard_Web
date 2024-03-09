@@ -47,7 +47,7 @@ const taskController = asyncHandler(async (req, res) => {
     if (boardId) {
       const connection = await connectionPool.getConnection();
       const sql = `
-      select tt.board_id,tt.title,tt.desc_task,tts.status
+      select tt.board_id,tt.title,tt.desc_task,tts.status,tt.table_id as task_id
       from tbl_boards tb join tbl_tasks tt on tb.table_id=tt.board_id join tbl_task_status tts on tt.table_id=tts.task_id
       WHERE tb.table_id=? and tb.user_id=? and tts.is_deleted=0 order by tt.table_id desc;
                 `;
@@ -59,7 +59,7 @@ const taskController = asyncHandler(async (req, res) => {
       return res.status(500).json(new ApiError(500, "Board id is required"));
     }
   } catch (error) {
-    return res.status(500).json(new ApiError(500, error.responce));
+    return res.status(500).json(new ApiError(500,error.sqlMessage|| error.responce));
   }
 });
 
@@ -97,6 +97,7 @@ const addTaskController = asyncHandler(async (req, res) => {
         new ApiResponse(200, {
           board_id: boardId,
           title: taskName,
+          task_id: taskId,
           desc_task: decription,
           status: taskStatus,
         })
@@ -109,9 +110,35 @@ const addTaskController = asyncHandler(async (req, res) => {
   }
 });
 
+const deleteTaskController = asyncHandler(async (req, res) => {
+  try {
+    const { taskId } = req.body;
+    if (taskId) {
+      const connection = await connectionPool.getConnection();
+      const sql = `UPDATE tbl_task_status SET is_deleted=1 WHERE task_id=?;`;
+      connection.query(sql, [taskId]);
+      connection.release();
+      return res.status(200).json(
+        new ApiResponse(
+          200,
+          {
+            deleted_task_id: taskId,
+          },
+          "deleted succesfully"
+        )
+      );
+    } else {
+      return res.status(500).json(new ApiError(500, "taskId is required"));
+    }
+  } catch (error) {
+    return res.status(500).json(new ApiError(500, error.responce));
+  }
+});
+
 export {
   addTaskController,
   createBoardController,
   getBoardsController,
   taskController,
+  deleteTaskController,
 };
