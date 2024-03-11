@@ -59,7 +59,9 @@ const taskController = asyncHandler(async (req, res) => {
       return res.status(500).json(new ApiError(500, "Board id is required"));
     }
   } catch (error) {
-    return res.status(500).json(new ApiError(500,error.sqlMessage|| error.responce));
+    return res
+      .status(500)
+      .json(new ApiError(500, error.sqlMessage || error.responce));
   }
 });
 
@@ -110,6 +112,52 @@ const addTaskController = asyncHandler(async (req, res) => {
   }
 });
 
+const editTaskController = asyncHandler(async (req, res) => {
+  const { boardId, taskName, decription, taskStatus, taskId } = req.body;
+  let errorData = [];
+  if (!boardId) {
+    errorData.push("boardId required");
+  }
+  if (!taskName) {
+    errorData.push("taskName required");
+  }
+  if (!decription) {
+    errorData.push("decription required");
+  }
+  if (!taskStatus) {
+    errorData.push("taskStatus required");
+  }
+  if (!taskId) {
+    errorData.push("taskId required");
+  }
+
+  try {
+    if (errorData.length == 0) {
+      const connection = await connectionPool.getConnection();
+      const updateFortblTask = `UPDATE tbl_tasks SET title=?,desc_task=? WHERE table_id=?;`;
+      const valuesFortblTask = [taskName, decription, taskId];
+      await connection.query(updateFortblTask, valuesFortblTask);
+      const updateFortblTaskStatus = `UPDATE tbl_task_status SET status=? WHERE task_id=?;`;
+      const valueFortblTaskStatus = [taskStatus, taskId];
+      await connection.query(updateFortblTaskStatus, valueFortblTaskStatus);
+      connection.release();
+      return res.status(200).json(
+        new ApiResponse(200, {
+          board_id: boardId,
+          title: taskName,
+          task_id: taskId,
+          desc_task: decription,
+          status: taskStatus,
+        })
+      );
+    } else {
+      return res.status(500).json(new ApiError(500, errorData));
+    }
+  } catch (error) {
+    return res.status(500).json(new ApiError(500, error.responce));
+  }
+});
+
 const deleteTaskController = asyncHandler(async (req, res) => {
   try {
     const { taskId } = req.body;
@@ -141,4 +189,5 @@ export {
   getBoardsController,
   taskController,
   deleteTaskController,
+  editTaskController,
 };
