@@ -52,13 +52,14 @@ const signupUserController = asyncHandler(async (req, res) => {
         )
       );
     } else {
-      return res.status(404).json(
-        new ApiError(
-          404,
-          `${userName} already exists
-      try different user name !`
-        )
-      );
+      return res
+        .status(404)
+        .json(
+          new ApiError(
+            404,
+            `"${userName}" already exists\n try different user name !`
+          )
+        );
     }
   } catch (error) {
     return res.status(500).json(new ApiError(500, error.response));
