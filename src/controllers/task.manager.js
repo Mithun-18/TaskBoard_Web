@@ -183,6 +183,31 @@ const deleteTaskController = asyncHandler(async (req, res) => {
   }
 });
 
+const deleteBoardController = asyncHandler(async (req, res) => {
+  try {
+    const { boardId } = req.body;
+    if (boardId) {
+      const connection = await connectionPool.getConnection();
+      const sql = `DELETE FROM tbl_boards WHERE table_id=?;`;
+      connection.query(sql, [boardId]);
+      connection.release();
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            { deleted_board_id: boardId },
+            "deleted succesfully"
+          )
+        );
+    } else {
+      return res.status(500).json(new ApiError(500, "boardId is required"));
+    }
+  } catch (error) {
+    return res.status(500).json(new ApiError(500, error.responce));
+  }
+});
+
 export {
   addTaskController,
   createBoardController,
@@ -190,4 +215,5 @@ export {
   taskController,
   deleteTaskController,
   editTaskController,
+  deleteBoardController,
 };
