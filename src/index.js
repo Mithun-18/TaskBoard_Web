@@ -9,6 +9,10 @@ checkConnection()
       console.log(`Server is running at http://localhost:${port}`);
     });
   })
-  .catch((_) => {
+  .catch((err) => {
+    console.log(err);
     process.exit(1);
   });
+
+
+

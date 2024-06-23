@@ -1,17 +1,10 @@
-import mysql from "mysql2/promise";
-import { dbConfig } from "./config.js";
-
-const connectionPool = mysql.createPool({
-  ...dbConfig,
-  connectionLimit: 10,
-});
+import mongoose from "mongoose";
 
 function checkConnection() {
   return new Promise((resolve, reject) => {
-    connectionPool
-      .getConnection()
-      .then((connection) => {
-        connection.release();
+    mongoose
+      .connect(process.env.MONGO_URI)
+      .then((_) => {
         resolve();
       })
       .catch((error) => {
@@ -20,4 +13,4 @@ function checkConnection() {
   });
 }
 
-export { connectionPool, checkConnection };
+export { checkConnection };
